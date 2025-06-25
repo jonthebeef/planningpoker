@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { ref, onValue, set, push, remove, serverTimestamp } from 'firebase/database';
 import { database } from '../lib/firebase';
 import { 
@@ -6,7 +6,8 @@ import {
   getUserName, 
   setUserName, 
   allParticipantsVoted,
-  generateTicketId 
+  generateTicketId,
+  generateSessionId 
 } from '../lib/utils';
 
 const PlanningPokerContext = createContext();
@@ -69,10 +70,25 @@ function planningPokerReducer(state, action) {
 
 export function PlanningPokerProvider({ children }) {
   const [state, dispatch] = useReducer(planningPokerReducer, initialState);
+  const [sessionId, setSessionId] = React.useState(null);
 
-  // Initialize user
+  // Initialize session ID and user
   useEffect(() => {
     try {
+      // Get session ID from URL or create new one
+      const urlParams = new URLSearchParams(window.location.search);
+      let currentSessionId = urlParams.get('session');
+      
+      if (!currentSessionId) {
+        // Generate a new session ID and update URL
+        currentSessionId = generateSessionId();
+        const newUrl = `${window.location.pathname}?session=${currentSessionId}`;
+        window.history.replaceState({}, '', newUrl);
+      }
+      
+      setSessionId(currentSessionId);
+      console.log('Session ID:', currentSessionId);
+      
       const userId = generateUserId();
       const userName = getUserName();
       
@@ -89,7 +105,7 @@ export function PlanningPokerProvider({ children }) {
 
   // Firebase listeners with timeout fallback
   useEffect(() => {
-    if (!state.userId) return;
+    if (!state.userId || !sessionId) return;
 
     const unsubscribers = [];
     
@@ -100,8 +116,8 @@ export function PlanningPokerProvider({ children }) {
     }, 2000); // Shorter timeout for better UX
 
     try {
-      // Listen to participants
-      const participantsRef = ref(database, 'session/participants');
+      // Listen to participants (session-specific)
+      const participantsRef = ref(database, `sessions/${sessionId}/participants`);
       const participantsUnsub = onValue(participantsRef, (snapshot) => {
         clearTimeout(connectionTimeout);
         const participants = snapshot.val() || {};
@@ -114,8 +130,8 @@ export function PlanningPokerProvider({ children }) {
       });
       unsubscribers.push(participantsUnsub);
 
-      // Listen to current ticket
-      const currentTicketRef = ref(database, 'session/currentTicket');
+      // Listen to current ticket (session-specific)
+      const currentTicketRef = ref(database, `sessions/${sessionId}/currentTicket`);
       const currentTicketUnsub = onValue(currentTicketRef, (snapshot) => {
         const ticket = snapshot.val();
         dispatch({ type: 'SET_CURRENT_TICKET', ticket });
@@ -124,8 +140,8 @@ export function PlanningPokerProvider({ children }) {
       });
       unsubscribers.push(currentTicketUnsub);
 
-      // Listen to votes for current round
-      const votesRef = ref(database, 'session/votes');
+      // Listen to votes for current round (session-specific)
+      const votesRef = ref(database, `sessions/${sessionId}/votes`);
       const votesUnsub = onValue(votesRef, (snapshot) => {
         const votes = snapshot.val() || {};
         dispatch({ type: 'SET_VOTES', votes });
@@ -134,8 +150,8 @@ export function PlanningPokerProvider({ children }) {
       });
       unsubscribers.push(votesUnsub);
 
-      // Listen to revealed status
-      const revealedRef = ref(database, 'session/revealed/current-round');
+      // Listen to revealed status (session-specific)
+      const revealedRef = ref(database, `sessions/${sessionId}/revealed/current-round`);
       const revealedUnsub = onValue(revealedRef, (snapshot) => {
         const revealed = snapshot.val() || false;
         dispatch({ type: 'SET_REVEALED', revealed });
@@ -160,7 +176,7 @@ export function PlanningPokerProvider({ children }) {
         }
       });
     };
-  }, [state.userId, state.currentTicket?.id]);
+  }, [state.userId, sessionId, state.currentTicket?.id]);
 
   // Auto-reveal when all voted
   useEffect(() => {
@@ -195,12 +211,14 @@ export function PlanningPokerProvider({ children }) {
 
       // Try to sync with Firebase, but don't fail if it doesn't work
       try {
-        const userRef = ref(database, `session/participants/${state.userId}`);
-        await set(userRef, {
-          name,
-          lastSeen: serverTimestamp()
-        });
-        console.log('Successfully synced with Firebase');
+        if (sessionId) {
+          const userRef = ref(database, `sessions/${sessionId}/participants/${state.userId}`);
+          await set(userRef, {
+            name,
+            lastSeen: serverTimestamp()
+          });
+          console.log('Successfully synced with Firebase for session:', sessionId);
+        }
       } catch (firebaseError) {
         console.warn('Firebase sync failed, continuing in offline mode:', firebaseError);
       }
@@ -257,12 +275,14 @@ export function PlanningPokerProvider({ children }) {
     
     // Try to sync with Firebase but don't block the UI
     try {
-      const voteRef = ref(database, `session/votes/current-round/${state.userId}`);
-      await set(voteRef, {
-        value,
-        timestamp: serverTimestamp()
-      });
-      console.log('Vote submitted successfully to Firebase');
+      if (sessionId) {
+        const voteRef = ref(database, `sessions/${sessionId}/votes/current-round/${state.userId}`);
+        await set(voteRef, {
+          value,
+          timestamp: serverTimestamp()
+        });
+        console.log('Vote submitted successfully to Firebase for session:', sessionId);
+      }
     } catch (error) {
       console.error('Firebase sync failed for vote:', error);
       // Local state is already updated, so this is just a warning
@@ -278,9 +298,11 @@ export function PlanningPokerProvider({ children }) {
     
     // Try to sync with Firebase in background
     try {
-      const revealedRef = ref(database, 'session/revealed/current-round');
-      await set(revealedRef, true);
-      console.log('Firebase updated - votes revealed');
+      if (sessionId) {
+        const revealedRef = ref(database, `sessions/${sessionId}/revealed/current-round`);
+        await set(revealedRef, true);
+        console.log('Firebase updated - votes revealed for session:', sessionId);
+      }
     } catch (error) {
       console.error('Firebase sync failed for reveal:', error);
       // Local state is already updated, so this is just a warning
@@ -300,14 +322,16 @@ export function PlanningPokerProvider({ children }) {
     
     // Try to sync with Firebase in background
     try {
-      const votesRef = ref(database, 'session/votes/current-round');
-      const revealedRef = ref(database, 'session/revealed/current-round');
-      
-      await Promise.all([
-        remove(votesRef),
-        remove(revealedRef)
-      ]);
-      console.log('Firebase cleared for new round');
+      if (sessionId) {
+        const votesRef = ref(database, `sessions/${sessionId}/votes/current-round`);
+        const revealedRef = ref(database, `sessions/${sessionId}/revealed/current-round`);
+        
+        await Promise.all([
+          remove(votesRef),
+          remove(revealedRef)
+        ]);
+        console.log('Firebase cleared for new round in session:', sessionId);
+      }
     } catch (error) {
       console.error('Firebase sync failed for new round:', error);
       // Local state is already cleared, so this is just a warning
@@ -328,6 +352,7 @@ export function PlanningPokerProvider({ children }) {
 
   const value = {
     ...state,
+    sessionId,
     joinSession,
     addTicket,
     submitVote,

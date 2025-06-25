@@ -5,6 +5,7 @@ import VotingInterface from '../components/VotingInterface';
 import UserList from '../components/UserList';
 import ResultsDisplay from '../components/ResultsDisplay';
 import ParticipantStatusBar from '../components/ParticipantStatusBar';
+import SessionInfo from '../components/SessionInfo';
 
 export default function Home() {
   const {
@@ -15,6 +16,7 @@ export default function Home() {
     revealed,
     loading,
     error,
+    sessionId,
     joinSession,
     submitVote,
     revealVotes,
@@ -79,6 +81,8 @@ export default function Home() {
 
   return (
     <>
+      <SessionInfo sessionId={sessionId} />
+      
       <Head>
         <title>Planning Poker - Team Estimation Tool</title>
         <meta name="description" content="A private planning poker tool for agile teams to estimate user stories collaboratively." />
