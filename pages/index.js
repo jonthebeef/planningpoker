@@ -1,3 +1,4 @@
+import Head from 'next/head';
 import { usePlanningPoker } from '../contexts/PlanningPokerContext';
 import NameEntry from '../components/NameEntry';
 import VotingInterface from '../components/VotingInterface';
@@ -78,6 +79,45 @@ export default function Home() {
 
   return (
     <>
+      <Head>
+        <title>Planning Poker - Team Estimation Tool</title>
+        <meta name="description" content="A private planning poker tool for agile teams to estimate user stories collaboratively." />
+        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate" />
+        <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate" />
+        <meta name="bingbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta name="slurp" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta name="duckduckbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta name="baiduspider" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta name="yandexbot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+        <meta name="facebookexternalhit" content="noindex, nofollow" />
+        <meta name="twitterbot" content="noindex, nofollow" />
+        <meta name="linkedinbot" content="noindex, nofollow" />
+        <meta name="slackbot" content="noindex, nofollow" />
+        <meta name="whatsapp" content="noindex, nofollow" />
+        <meta name="telegrambot" content="noindex, nofollow" />
+        <meta name="discordbot" content="noindex, nofollow" />
+        <meta name="applebot" content="noindex, nofollow" />
+        <meta name="ia_archiver" content="noindex, nofollow" />
+        <meta name="archive.org_bot" content="noindex, nofollow" />
+        <meta name="gptbot" content="noindex, nofollow" />
+        <meta name="chatgpt-user" content="noindex, nofollow" />
+        <meta name="claudebot" content="noindex, nofollow" />
+        <meta name="anthropic-ai" content="noindex, nofollow" />
+        <meta name="claude-web" content="noindex, nofollow" />
+        <meta name="perplexitybot" content="noindex, nofollow" />
+        <meta name="youbot" content="noindex, nofollow" />
+        <meta name="bard" content="noindex, nofollow" />
+        <meta property="og:title" content="Planning Poker - Private Team Tool" />
+        <meta property="og:description" content="This is a private planning poker session. Not for public access." />
+        <meta property="og:robots" content="noindex, nofollow" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Planning Poker - Private Team Tool" />
+        <meta name="twitter:description" content="This is a private planning poker session. Not for public access." />
+        <meta name="twitter:robots" content="noindex, nofollow" />
+        <meta httpEquiv="X-Robots-Tag" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate" />
+        <link rel="canonical" href="#" />
+      </Head>
+      
       {/* Main Content */}
       <main>
         {/* Show results if revealed, otherwise show voting interface */}
