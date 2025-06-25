@@ -104,18 +104,18 @@ export default function NameEntry({ onNameSubmit }) {
         <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 animate-slide-up">
           <div className="text-center">
             <div className="text-3xl mb-3">⚡</div>
-            <h3 className="font-semibold text-gray-800 mb-1">Instant</h3>
-            <p className="text-sm text-gray-600">Join and start voting right away</p>
+            <h3 className="font-semibold text-white drop-shadow-lg mb-1">Instant</h3>
+            <p className="text-sm text-white/80 drop-shadow-md">Join and start voting right away</p>
           </div>
           <div className="text-center">
             <div className="text-3xl mb-3">🔄</div>
-            <h3 className="font-semibold text-gray-800 mb-1">Real-time</h3>
-            <p className="text-sm text-gray-600">See votes update live</p>
+            <h3 className="font-semibold text-white drop-shadow-lg mb-1">Real-time</h3>
+            <p className="text-sm text-white/80 drop-shadow-md">See votes update live</p>
           </div>
           <div className="text-center">
             <div className="text-3xl mb-3">📱</div>
-            <h3 className="font-semibold text-gray-800 mb-1">Mobile</h3>
-            <p className="text-sm text-gray-600">Works on any device</p>
+            <h3 className="font-semibold text-white drop-shadow-lg mb-1">Mobile</h3>
+            <p className="text-sm text-white/80 drop-shadow-md">Works on any device</p>
           </div>
         </div>
       </div>
